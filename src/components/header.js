@@ -1,4 +1,6 @@
 import React from "react";
+import {connect} from 'react-redux'
+
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -22,8 +24,8 @@ const useStyles = makeStyles(theme => ({
 
 const Header=(props)=> {
     const classes = useStyles();
-    console.log(props)
     return (
+          
           <div className={classes.root}>
           <AppBar position="static">
             <Toolbar>
@@ -33,12 +35,15 @@ const Header=(props)=> {
               <Typography variant="h6" className={classes.title}>
                 
               </Typography>
-                <Button color="inherit">{props.data.isLoggedIn? props.data.name:'Login'}</Button>
-                 {props.data.isLoggedIn && <Avatar  src={props.data.avatar} />}
+                <Button color="inherit">{props.auth.isLoggedIn? props.auth.name:'Login'}</Button>
+                 {props.auth.isLoggedIn && <Avatar  src={props.auth.imageUrl} />}
             </Toolbar>
           </AppBar>
         </div>
     );
 }
 
-export default Header;
+const mapStateToProps=(state)=>({
+  auth:state.auth
+})
+export default connect(mapStateToProps)(Header);

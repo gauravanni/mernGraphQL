@@ -1,25 +1,17 @@
 import React, { Component } from 'react';
+import {connect} from 'react-redux'
 import './App.css';
 import Header from './components/header'
+import {setAuth,logOut} from './actions/auth'
 import { GoogleLogin,GoogleLogout  } from 'react-google-login';
+import FacebookLogin from 'react-facebook-login';
+
 
 class App extends Component {
-   constructor(props) {
-      super(props);
-      this.state={
-        name:'',
-        email:'',
-        avatar:'',
-        isLoggedIn:false
-      }
-   }
    
    responseGoogle=(res)=>{
-     console.log(res)
       const {name,email,imageUrl}=res.profileObj;
-      console.log(name)
-      this.setState(()=>({name,email,avatar:imageUrl,isLoggedIn:true}))
-      
+      this.props.setAuth({name,email,imageUrl,isLoggedIn:true})
       const requestBody = {
         query: `,
           mutation {
@@ -32,7 +24,7 @@ class App extends Component {
         `
       };
       
-      fetch('http://localhost:4000/', {
+      fetch('https://nodegraphqlauth.herokuapp.com/', {
         method: 'POST',
         body: JSON.stringify(requestBody),
         headers: {'Content-Type': 'application/json'}
@@ -48,12 +40,17 @@ class App extends Component {
         });
    }
 
+   responseFacebook=(res)=>{
+    console.log('res',res);
+   }
+   
+
    fail=(err)=>{
     console.log(err)
    }
 
    logout=()=>{
-    this.setState(()=>({isLoggedIn:false}))
+    this.props.logOut()
   }
     
    logoutContent=(
@@ -67,21 +64,30 @@ class App extends Component {
    render() {
       return (
          <div className="App">
-              <Header data={this.state} />
-              {!this.state.isLoggedIn && (
+              <Header />
+              {!this.props.auth.isLoggedIn && (
                 <GoogleLogin
-                clientId="160748872523-tc047cshaj90rs8mp898um5418qmn3f7.apps.googleusercontent.com"
-                buttonText="Login"
-                onSuccess={this.responseGoogle}
-                onFailure={this.fail}
-                className="googleBtn"
+                  clientId="160748872523-tc047cshaj90rs8mp898um5418qmn3f7.apps.googleusercontent.com"
+                  buttonText="Login"
+                  onSuccess={this.responseGoogle}
+                  onFailure={this.fail}
+                  className="googleBtn"
                 />
               )}
-              {this.state.isLoggedIn && this.logoutContent}
+              <FacebookLogin
+                appId="468594710242226"
+                fields="name,email,picture"
+                callback={this.responseFacebook}
+              />
+              {this.props.auth.isLoggedIn && this.logoutContent}
          </div>
       );
    }
    
 }
 
-export default App;
+const mapStateToProps=(state)=>({
+  auth:state.auth
+})
+
+export default connect(mapStateToProps,{setAuth,logOut})(App);
